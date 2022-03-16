@@ -5,6 +5,7 @@
 
 use core::slice::Chunks;
 
+use derivative::Derivative;
 use modular_bitfield::prelude::*;
 use byte::{
     ctx::*,
@@ -20,8 +21,10 @@ use super::ECH_BYTES;
 /// Egress Control Vector is DWORD
 const ECV_BYTES: usize = 4;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Derivative, Clone, PartialEq, Eq)]
+#[derivative(Debug)]
 pub struct AccessControlServices<'a> {
+    #[derivative(Debug="ignore")]
     data: &'a [u8],
     /// ACS Capability
     pub acs_capability: AcsCapability,
