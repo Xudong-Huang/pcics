@@ -23,7 +23,7 @@ Extended Capabilities list:
 - [x] [Access Control Services](access_control_services) (ACS) (000Dh)
 - [x] [Alternative Routing-ID Interpretation](alternative_routing_id_interpolation) (ARI) (000Eh)
 - [x] [Address Translation Services](address_translation_services) (ATS) (000Fh)
-- [ ] Single Root I/O Virtualization (SR-IOV) (0010h)
+- [x] Single Root I/O Virtualization (SR-IOV) (0010h)
 - [ ] Multi-Root I/O Virtualization (MR-IOV) (0011h)
 - [ ] Multicast (0012h)
 - [x] [Page Request Interface](page_request_interface) (PRI) (0013h)
@@ -155,7 +155,7 @@ impl<'a> Iterator for ExtendedCapabilities<'a> {
             0x000D => AccessControlServices(bytes.read_with(ecs_offset, LE).ok()?),
             0x000E => AlternativeRoutingIdInterpretation(bytes.read_with(ecs_offset, LE).ok()?),
             0x000F => AddressTranslationServices(bytes.read_with(ecs_offset, LE).ok()?),
-            0x0010 => SingleRootIoVirtualization,
+            0x0010 => SingleRootIoVirtualization(bytes.read_with(ecs_offset, LE).ok()?),
             0x0011 => MultiRootIoVirtualization,
             0x0012 => Multicast,
             0x0013 => PageRequestInterface(bytes.read_with(ecs_offset, LE).ok()?),
@@ -218,7 +218,7 @@ impl<'a> ExtendedCapability<'a> {
             ExtendedCapabilityKind::AccessControlServices(_) => 0x000D,
             ExtendedCapabilityKind::AlternativeRoutingIdInterpretation(_) => 0x000E,
             ExtendedCapabilityKind::AddressTranslationServices(_) => 0x000F,
-            ExtendedCapabilityKind::SingleRootIoVirtualization => 0x0010,
+            ExtendedCapabilityKind::SingleRootIoVirtualization(_) => 0x0010,
             ExtendedCapabilityKind::MultiRootIoVirtualization => 0x0011,
             ExtendedCapabilityKind::Multicast => 0x0012,
             ExtendedCapabilityKind::PageRequestInterface(_) => 0x0013,
@@ -289,7 +289,7 @@ pub enum ExtendedCapabilityKind<'a> {
     /// Address Translation Services (ATS)
     AddressTranslationServices(AddressTranslationServices),
     /// Single Root I/O Virtualization (SR-IOV)
-    SingleRootIoVirtualization,
+    SingleRootIoVirtualization(SingleRootIoVirtualization),
     /// Multi-Root I/O Virtualization (MR-IOV) – defined in the Multi-Root I/O Virtualization and
     /// Sharing Specification
     MultiRootIoVirtualization,
@@ -381,6 +381,11 @@ pub use alternative_routing_id_interpolation::AlternativeRoutingIdInterpretation
 // 000Fh Address Translation Services (ATS)
 pub mod address_translation_services;
 pub use address_translation_services::AddressTranslationServices;
+
+
+// 0010h Single Root I/O Virtualization (SR-IOV)
+pub mod single_root_io_virtualization;
+pub use single_root_io_virtualization::SingleRootIoVirtualization;
 
 // 0013h Page Request Interface (PRI)
 pub mod page_request_interface;
