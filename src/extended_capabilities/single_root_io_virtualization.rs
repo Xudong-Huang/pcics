@@ -4,6 +4,7 @@
 //! which supports SR-IOV PCIe extended capability and manages entire physical devices;
 //! and VF (Virtual Function), a “lightweight” PCIe function which is a passthrough device for VMs.
 
+use crate::capabilities::msi_x::Table;
 use crate::header::BaseAddressesNormal;
 use byte::{
     self,
@@ -43,7 +44,7 @@ pub struct SingleRootIoVirtualization {
     /// VF BAR0 ~ BAR 5
     pub sriov_vf_bar: BaseAddressesNormal,
     /// VF Migration State Array Offset (RO)
-    pub sriov_vf_migration_state_array_offset: u32,
+    pub sriov_vf_migration_state_array_offset: Table,
 }
 impl<'a> TryRead<'a, Endian> for SingleRootIoVirtualization {
     fn try_read(bytes: &'a [u8], endian: Endian) -> byte::Result<(Self, usize)> {
@@ -62,7 +63,7 @@ impl<'a> TryRead<'a, Endian> for SingleRootIoVirtualization {
             sriov_supported_page_sizes: bytes.read_with::<u32>(offset, endian)?,
             sriov_system_page_size: bytes.read_with::<u32>(offset, endian)?,
             sriov_vf_bar: bytes.read_with::<BaseAddressesNormal>(offset, endian)?,
-            sriov_vf_migration_state_array_offset: bytes.read_with::<u32>(offset, endian)?,
+            sriov_vf_migration_state_array_offset: bytes.read_with::<u32>(offset, endian)?.into(),
         };
         Ok((ptm, *offset))
     }
@@ -71,46 +72,40 @@ impl<'a> TryRead<'a, Endian> for SingleRootIoVirtualization {
 #[bitfield(bits = 32)]
 #[repr(u32)]
 pub struct SrIovCapabilityProto {
-    pub ptm_requester_capable: bool,
-    pub ptm_responder_capable: bool,
-    pub ptm_root_capable: bool,
-    pub rsvdp: B5,
-    pub local_clock_granularity: u8,
-    pub rsvdp_2: B16,
+    /// VF Migration Capable
+    pub vf_migration: bool,
+    /// ARI Capable Hierarchy Preserved
+    pub ari_preserved: bool,
+    #[skip]
+    __: B19,
+    /// VF Migration Interrupt Message Number
+    pub vf_mig_int: B11,
 }
 impl From<SrIovCapability> for SrIovCapabilityProto {
     fn from(data: SrIovCapability) -> Self {
         Self::new()
-            .with_ptm_requester_capable(data.ptm_requester_capable)
-            .with_ptm_responder_capable(data.ptm_responder_capable)
-            .with_ptm_root_capable(data.ptm_root_capable)
-            .with_rsvdp(0)
-            .with_local_clock_granularity(data.local_clock_granularity)
-            .with_rsvdp_2(0)
+            .with_vf_migration(data.vf_migration)
+            .with_ari_preserved(data.ari_preserved)
+            .with_vf_mig_int(data.vf_mig_int)
     }
 }
 
 /// Describes a Function’s support for Precision Time Measurement
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SrIovCapability {
-    /// PTM Requester Capable
-    pub ptm_requester_capable: bool,
-    /// PTM Responder Capable
-    pub ptm_responder_capable: bool,
-    /// PTM Root Capable
-    pub ptm_root_capable: bool,
-    /// Local Clock Granularity
-    pub local_clock_granularity: u8,
+    /// VF Migration Capable
+    pub vf_migration: bool,
+    /// ARI Capable Hierarchy Preserved
+    pub ari_preserved: bool,
+    /// VF Migration Interrupt Message Number
+    pub vf_mig_int: u16,
 }
 impl From<SrIovCapabilityProto> for SrIovCapability {
     fn from(proto: SrIovCapabilityProto) -> Self {
-        let _ = proto.rsvdp();
-        let _ = proto.rsvdp_2();
         Self {
-            ptm_requester_capable: proto.ptm_requester_capable(),
-            ptm_responder_capable: proto.ptm_responder_capable(),
-            ptm_root_capable: proto.ptm_root_capable(),
-            local_clock_granularity: proto.local_clock_granularity(),
+            vf_migration: proto.vf_migration(),
+            ari_preserved: proto.ari_preserved(),
+            vf_mig_int: proto.vf_mig_int(),
         }
     }
 }
@@ -128,38 +123,47 @@ impl From<SrIovCapability> for u32 {
 #[bitfield(bits = 16)]
 #[repr(u16)]
 pub struct SrIovControlProto {
-    pub ptm_enable: bool,
-    pub root_select: bool,
-    pub rsvdp: B6,
-    pub effective_granularity: u8,
+    pub vf_enable: bool,
+    pub vf_mig_enable: bool,
+    pub vf_mig_int_enable: bool,
+    pub vf_mse: bool,
+    pub ari_capable: bool,
+    #[skip]
+    __: B11,
 }
 impl From<SrIovControl> for SrIovControlProto {
     fn from(data: SrIovControl) -> Self {
         Self::new()
-            .with_ptm_enable(data.ptm_enable)
-            .with_root_select(data.root_select)
-            .with_rsvdp(0)
-            .with_effective_granularity(data.effective_granularity)
+            .with_vf_enable(data.vf_enable)
+            .with_vf_mig_enable(data.vf_mig_enable)
+            .with_vf_mig_int_enable(data.vf_mig_int_enable)
+            .with_vf_mse(data.vf_mse)
+            .with_ari_capable(data.ari_capable)
     }
 }
 
 /// SR-IOV control
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SrIovControl {
-    /// PTM Enable
-    pub ptm_enable: bool,
-    /// Root Select
-    pub root_select: bool,
-    /// Effective Granularity
-    pub effective_granularity: u8,
+    /// VF Enable
+    pub vf_enable: bool,
+    /// VF Migration Enable
+    pub vf_mig_enable: bool,
+    /// VF Migration Interrupt Enable
+    pub vf_mig_int_enable: bool,
+    /// VF MSE
+    pub vf_mse: bool,
+    /// ARI Capable Hierarchy
+    pub ari_capable: bool,
 }
 impl From<SrIovControlProto> for SrIovControl {
     fn from(proto: SrIovControlProto) -> Self {
-        let _ = proto.rsvdp();
         Self {
-            ptm_enable: proto.ptm_enable(),
-            root_select: proto.root_select(),
-            effective_granularity: proto.effective_granularity(),
+            vf_enable: proto.vf_enable(),
+            vf_mig_enable: proto.vf_mig_enable(),
+            vf_mig_int_enable: proto.vf_mig_int_enable(),
+            vf_mse: proto.vf_mse(),
+            ari_capable: proto.ari_capable(),
         }
     }
 }
@@ -177,38 +181,26 @@ impl From<SrIovControl> for u16 {
 #[bitfield(bits = 16)]
 #[repr(u16)]
 pub struct SrIovStatusProto {
-    pub ptm_enable: bool,
-    pub root_select: bool,
-    pub rsvdp: B6,
-    pub effective_granularity: u8,
+    pub vf_migration: bool,
+    #[skip]
+    __: B15,
 }
 impl From<SrIovStatus> for SrIovStatusProto {
     fn from(data: SrIovStatus) -> Self {
-        Self::new()
-            .with_ptm_enable(data.ptm_enable)
-            .with_root_select(data.root_select)
-            .with_rsvdp(0)
-            .with_effective_granularity(data.effective_granularity)
+        Self::new().with_vf_migration(data.vf_migration)
     }
 }
 
 /// SR-IOV status
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SrIovStatus {
-    /// PTM Enable
-    pub ptm_enable: bool,
-    /// Root Select
-    pub root_select: bool,
-    /// Effective Granularity
-    pub effective_granularity: u8,
+    /// VF Migration Status
+    pub vf_migration: bool,
 }
 impl From<SrIovStatusProto> for SrIovStatus {
     fn from(proto: SrIovStatusProto) -> Self {
-        let _ = proto.rsvdp();
         Self {
-            ptm_enable: proto.ptm_enable(),
-            root_select: proto.root_select(),
-            effective_granularity: proto.effective_granularity(),
+            vf_migration: proto.vf_migration(),
         }
     }
 }
