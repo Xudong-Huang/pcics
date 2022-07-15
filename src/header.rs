@@ -89,16 +89,16 @@ use byte::{
     BytesExt,
 };
 
-mod command;
+pub mod command;
 pub use command::Command;
 
-mod status;
+pub mod status;
 pub use status::Status;
 
-mod class_code;
+pub mod class_code;
 pub use class_code::ClassCode;
 
-mod bar;
+pub mod bar;
 pub use bar::{
     BaseAddressType,
     BaseAddressesNormal,
@@ -106,10 +106,10 @@ pub use bar::{
     BaseAddressesCardbus
 };
 
-mod bridge_control;
+pub mod bridge_control;
 pub use bridge_control::BridgeControl;
 
-mod cardbus_bridge_control;
+pub mod cardbus_bridge_control;
 pub use cardbus_bridge_control::CardbusBridgeControl;
 
 
