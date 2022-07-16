@@ -47,18 +47,18 @@ pub struct BridgeControl {
 #[bitfield(bits = 16)]
 #[repr(u16)]
 pub struct BridgeControlProto {
-    parity_error_response_enable: bool,
-    serr_enable: bool,
-    isa_enable: bool,
-    vga_enable: bool,
-    vga_16_enable: bool,
-    master_abort_mode: bool,
-    secondary_bus_reset: bool,
-    fast_back_to_back_enable: bool,
-    primary_discard_timer: bool,
-    secondary_discard_timer: bool,
-    discard_timer_status: bool,
-    discard_timer_serr_enable: bool,
+    pub parity_error_response_enable: bool,
+    pub serr_enable: bool,
+    pub isa_enable: bool,
+    pub vga_enable: bool,
+    pub vga_16_enable: bool,
+    pub master_abort_mode: bool,
+    pub secondary_bus_reset: bool,
+    pub fast_back_to_back_enable: bool,
+    pub primary_discard_timer: bool,
+    pub secondary_discard_timer: bool,
+    pub discard_timer_status: bool,
+    pub discard_timer_serr_enable: bool,
     pub reserved: B4,
 }
 
