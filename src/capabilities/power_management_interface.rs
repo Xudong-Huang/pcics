@@ -16,7 +16,7 @@ use byte::{
 
 
 
-#[derive(Debug, PartialEq, Eq,)] 
+#[derive(Debug, PartialEq, Eq,)]
 pub struct PowerManagementInterface {
     pub capabilities: Capabilities,
     pub control: Control,
@@ -156,12 +156,12 @@ pub struct PmeSupport {
 #[bitfield(bits = 16)]
 #[repr(u16)]
 pub struct ControlProto {
-    power_state: B2,
-    reserved: B6,
-    pme_enabled: bool,
-    data_select: B4,
-    data_scale: B2,
-    pme_status: bool,
+    pub power_state: B2,
+    pub reserved: B6,
+    pub pme_enabled: bool,
+    pub data_select: B4,
+    pub data_scale: B2,
+    pub pme_status: bool,
 }
 
 /// Used to manage the PCI function’s power management state as well as to enable/monitor PMEs.
