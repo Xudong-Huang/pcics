@@ -439,7 +439,7 @@ mod tests {
         // Capabilities: [300] Vendor Specific Information: ID=0008 Rev=0 Len=038 <?>
         let ecaps = ExtendedCapabilities::new(
             include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),
-                "/tests/data/device/8086:2030/config"
+                "/tests/data/device/8086_2030/config"
             ))
             [ECS_OFFSET..].try_into().unwrap()
         );

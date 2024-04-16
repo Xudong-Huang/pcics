@@ -79,8 +79,6 @@ assert_eq!(sample, result);
 ```
 */
 
-use core::convert::TryInto;
-
 use byte::{
     ctx::*,
     self,
@@ -571,7 +569,7 @@ impl From<InterruptPin> for u8 {
 
 /// The IO Base Register and I/O Limit Register defines the address range that is used by the
 /// bridge to determine when to forward an I/O transaction to the CardBus.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub enum IoAccessAddressRange {
     Addr16Bit {
         base: u16,
@@ -581,11 +579,10 @@ pub enum IoAccessAddressRange {
         base: u32,
         limit: u32
     },
+    #[default]
     Unknown,
 }
-impl Default for IoAccessAddressRange {
-    fn default() -> Self { IoAccessAddressRange::Unknown }
-}
+
 impl<'a> TryRead<'a, Endian> for IoAccessAddressRange {
     fn try_read(bytes: &'a [u8], endian: Endian) -> byte::Result<(Self, usize)> {
         let offset = &mut 0;

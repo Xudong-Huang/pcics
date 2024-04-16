@@ -29,7 +29,7 @@ use pcics::{
 let conf_space =
     include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/tests/data/device/8086:2030/config"
+        "/tests/data/device/8086_2030/config"
     ));
 
 let header_data = &conf_space[..DDR_OFFSET];

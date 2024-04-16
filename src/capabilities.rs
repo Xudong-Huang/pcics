@@ -348,7 +348,7 @@ mod tests {
         // Capabilities: [80] Vendor Specific Information: Len=14 <?>
         // Capabilities: [60] MSI: Enable+ Count=1/1 Maskable- 64bit+
         //         Address: 00000000fee00578  Data: 0000
-        let data = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data/device/8086:9dc8/config"));
+        let data = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data/device/8086_9dc8/config"));
         let ddr = &data[DDR_OFFSET..ECS_OFFSET];
         let offset = data[0x34];
         let result = Capabilities::new(ddr, offset).collect::<Vec<_>>();
